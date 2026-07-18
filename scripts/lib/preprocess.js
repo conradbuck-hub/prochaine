@@ -8,6 +8,67 @@ export const CALENDAR_DAYS = [
   "monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday",
 ];
 
+// Fixed time-of-day bands used to derive frequency tables for agencies
+// (STM among them) that publish explicit métro trips in stop_times.txt
+// instead of frequencies.txt. Seconds run past 24:00:00 for post-midnight
+// GTFS times, same convention as departureTime elsewhere in this repo.
+const TIME_BANDS = [
+  { start: 0, end: 5.5 * 3600 },        // 00:00–05:30
+  { start: 5.5 * 3600, end: 9 * 3600 }, // 05:30–09:00 (AM peak)
+  { start: 9 * 3600, end: 15 * 3600 },  // 09:00–15:00 (midday)
+  { start: 15 * 3600, end: 18.5 * 3600 }, // 15:00–18:30 (PM peak)
+  { start: 18.5 * 3600, end: 24 * 3600 }, // 18:30–24:00 (evening)
+  { start: 24 * 3600, end: 30 * 3600 },   // post-midnight continuation
+];
+
+function timeStringToSeconds(hms) {
+  const [h, m, s] = hms.split(":").map(Number);
+  return h * 3600 + m * 60 + (s ?? 0);
+}
+
+function secondsToTimeString(totalSeconds) {
+  const h = Math.floor(totalSeconds / 3600);
+  const m = Math.floor((totalSeconds % 3600) / 60);
+  const s = Math.floor(totalSeconds % 60);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${pad(h)}:${pad(m)}:${pad(s)}`;
+}
+
+function median(numbers) {
+  const sorted = [...numbers].sort((a, b) => a - b);
+  const mid = Math.floor(sorted.length / 2);
+  return sorted.length % 2 !== 0 ? sorted[mid] : (sorted[mid - 1] + sorted[mid]) / 2;
+}
+
+// Derives one frequency-table entry per time band that has at least two
+// departures (i.e. at least one real gap to measure) — first/last departure
+// in the band become startTime/endTime, and headwaySecs is the median gap
+// between consecutive departures. A band with 0-1 departures is dropped
+// rather than guessing a headway from nothing.
+function deriveFrequencyBandsForGroup({ routeId, headsign, serviceDays, seconds }) {
+  const sorted = [...seconds].sort((a, b) => a - b);
+  const entries = [];
+
+  for (const band of TIME_BANDS) {
+    const inBand = sorted.filter((s) => s >= band.start && s < band.end);
+    if (inBand.length < 2) continue;
+
+    const gaps = [];
+    for (let i = 1; i < inBand.length; i++) gaps.push(inBand[i] - inBand[i - 1]);
+
+    entries.push({
+      routeId,
+      headsign,
+      startTime: secondsToTimeString(inBand[0]),
+      endTime: secondsToTimeString(inBand[inBand.length - 1]),
+      headwaySecs: Math.round(median(gaps)),
+      serviceDays,
+    });
+  }
+
+  return entries;
+}
+
 async function loadRouteTypes(source) {
   const routes = new Map();
   for await (const row of source.streamRows("routes.txt")) {
@@ -81,7 +142,12 @@ export async function processAgency({ agencyPrefix, sourcePath, modeForRouteType
   ]);
 
   const stopModes = new Map();
-  const frequencyDedup = new Map(); // stopId -> Map(signature -> entry)
+  const frequencyDedup = new Map(); // stopId -> Map(signature -> entry), sourced from frequencies.txt
+  // stopId -> Map(groupKey -> { routeId, headsign, serviceDays, seconds: [] })
+  // Fallback source for frequency-mode stops when frequencies.txt doesn't
+  // cover them — STM ships no frequencies.txt at all, so this is the
+  // primary path for métro in practice (see deriveFrequencyBandsForGroup).
+  const rawDepartures = new Map();
   const timetableByStop = new Map(); // stopId -> [entries]
 
   let rowsProcessed = 0;
@@ -100,20 +166,36 @@ export async function processAgency({ agencyPrefix, sourcePath, modeForRouteType
 
     if (strategy === "frequency") {
       const freqList = frequencies.get(row.trip_id);
-      if (!freqList) continue;
-      if (!frequencyDedup.has(row.stop_id)) frequencyDedup.set(row.stop_id, new Map());
-      const dedupMap = frequencyDedup.get(row.stop_id);
-      for (const freq of freqList) {
-        const signature = `${route.shortName}|${trip.headsign}|${freq.startTime}|${freq.endTime}|${freq.headwaySecs}`;
-        if (dedupMap.has(signature)) continue;
-        dedupMap.set(signature, {
-          routeId: route.shortName,
-          headsign: trip.headsign,
-          startTime: freq.startTime,
-          endTime: freq.endTime,
-          headwaySecs: freq.headwaySecs,
-          serviceDays,
-        });
+      if (freqList) {
+        if (!frequencyDedup.has(row.stop_id)) frequencyDedup.set(row.stop_id, new Map());
+        const dedupMap = frequencyDedup.get(row.stop_id);
+        for (const freq of freqList) {
+          const signature = `${route.shortName}|${trip.headsign}|${freq.startTime}|${freq.endTime}|${freq.headwaySecs}`;
+          if (dedupMap.has(signature)) continue;
+          dedupMap.set(signature, {
+            routeId: route.shortName,
+            headsign: trip.headsign,
+            startTime: freq.startTime,
+            endTime: freq.endTime,
+            headwaySecs: freq.headwaySecs,
+            serviceDays,
+          });
+        }
+      }
+
+      // Always also collect the raw departure time as a fallback source —
+      // cheap (métro/REM trip volume is a small fraction of stop_times.txt
+      // compared to bus), and it's what lets stops with no frequencies.txt
+      // coverage still get a derived frequency table below.
+      const departureTime = row.departure_time || row.arrival_time;
+      if (departureTime) {
+        if (!rawDepartures.has(row.stop_id)) rawDepartures.set(row.stop_id, new Map());
+        const groupMap = rawDepartures.get(row.stop_id);
+        const groupKey = `${route.shortName}|${trip.headsign}|${serviceDays.join(",")}`;
+        if (!groupMap.has(groupKey)) {
+          groupMap.set(groupKey, { routeId: route.shortName, headsign: trip.headsign, serviceDays, seconds: [] });
+        }
+        groupMap.get(groupKey).seconds.push(timeStringToSeconds(departureTime));
       }
     } else if (strategy === "timetable") {
       const list = timetableByStop.get(row.stop_id) ?? [];
@@ -127,6 +209,21 @@ export async function processAgency({ agencyPrefix, sourcePath, modeForRouteType
       timetableByStop.set(row.stop_id, list);
     }
     // strategy === "live" (bus): registering the stop above is all that's needed.
+  }
+
+  // Derive frequency bands (per station/line/service-day-type, first/last
+  // departure + median headway per band) for any frequency-mode stop that
+  // frequencies.txt didn't already cover.
+  for (const [stopId, groupMap] of rawDepartures) {
+    if (frequencyDedup.get(stopId)?.size > 0) continue;
+    const derived = new Map();
+    for (const group of groupMap.values()) {
+      for (const entry of deriveFrequencyBandsForGroup(group)) {
+        const signature = `${entry.routeId}|${entry.headsign}|${entry.startTime}|${entry.endTime}|${entry.headwaySecs}`;
+        derived.set(signature, entry);
+      }
+    }
+    if (derived.size > 0) frequencyDedup.set(stopId, derived);
   }
 
   const stopEntries = [];

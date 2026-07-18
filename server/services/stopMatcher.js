@@ -90,6 +90,37 @@ export function findStop(query, stopIndex, profile = {}) {
   return null;
 }
 
+// Ranks every stop against a query using the same normalize/exact/contains/
+// edit-distance signals findStop uses, instead of returning just the single
+// winner — useful for debugging a resolution (e.g. GET /debug/stops?q=...):
+// seeing the top few candidates and their distance makes it obvious why a
+// query resolved (or didn't) the way it did. Sorted best-first; ties keep
+// stopIndex order (stable sort).
+export function rankStops(query, stopIndex, limit = 10) {
+  const normalizedQuery = normalize(query);
+  if (!normalizedQuery) return [];
+
+  return stopIndex
+    .map((stop) => {
+      const normalizedName = normalize(stop.name);
+      let source;
+      let distance;
+      if (normalizedName === normalizedQuery) {
+        source = "exact";
+        distance = 0;
+      } else if (normalizedName.includes(normalizedQuery)) {
+        source = "contains";
+        distance = 0;
+      } else {
+        source = "fuzzy";
+        distance = levenshtein(normalizedQuery, normalizedName);
+      }
+      return { stop, source, distance };
+    })
+    .sort((a, b) => a.distance - b.distance)
+    .slice(0, limit);
+}
+
 function resolveTarget(target, stopIndex) {
   if (typeof target !== "string") return null;
   return stopIndex.find((s) => s.id === target) ?? stopIndex.find((s) => normalize(s.name) === normalize(target)) ?? null;

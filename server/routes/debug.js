@@ -1,6 +1,6 @@
 import { Router } from "express";
 import { getDepartures } from "../services/departures/index.js";
-import { findStop } from "../services/stopMatcher.js";
+import { findStop, rankStops } from "../services/stopMatcher.js";
 
 // Bypasses chat/LLM entirely — used in Stage 1 to spot-check each of the
 // three departure paths directly against a stop ID.
@@ -20,7 +20,22 @@ export function createDebugRouter({ config, cache, stopIndex, scheduleIndex }) {
     }
   });
 
+  // With ?q=, wired to the real fuzzy matcher (exact / contains /
+  // edit-distance fallback) so this shows ranked candidates instead of a
+  // silent full dump — the bug this fixed was returning all 9000+ stops
+  // regardless of q. Without ?q=, keeps its original behavior: a raw dump
+  // of the first 50 stops.
   router.get("/debug/stops", (req, res) => {
+    const q = req.query.q;
+    if (typeof q === "string" && q.trim()) {
+      const limit = Number(req.query.limit) || 10;
+      const ranked = rankStops(q, stopIndex, limit);
+      return res.json({
+        query: q,
+        count: ranked.length,
+        matches: ranked.map(({ stop, source, distance }) => ({ ...stop, source, distance })),
+      });
+    }
     res.json({ count: stopIndex.length, stops: stopIndex.slice(0, 50) });
   });
 
