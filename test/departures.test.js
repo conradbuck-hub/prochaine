@@ -1,8 +1,16 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
+import GtfsRealtimeBindings from "gtfs-realtime-bindings";
 import { departuresFromFrequencies, serviceHoursFromFrequencies, timeStringToSeconds } from "../server/services/departures/metro.js";
-import { departuresFromTimetable, serviceHoursFromTimetable, delayMapFromFeedMessage } from "../server/services/departures/exo.js";
+import { departuresFromTimetable, serviceHoursFromTimetable, delayMapFromFeedMessage, fetchExoTripUpdates } from "../server/services/departures/exo.js";
 import { departuresFromFeedMessage } from "../server/services/departures/bus.js";
+
+function encodeEmptyFeedMessage() {
+  return GtfsRealtimeBindings.transit_realtime.FeedMessage.encode({
+    header: { gtfsRealtimeVersion: "2.0", incrementality: 0, timestamp: 0 },
+    entity: [],
+  }).finish();
+}
 
 test("metro: frequency path computes minutes to next periodic departure", () => {
   const now = new Date();
@@ -175,4 +183,27 @@ test("exo: service hours report first/last departure per route", () => {
   assert.equal(hours.length, 1);
   assert.equal(hours[0].first, "08:15:00");
   assert.equal(hours[0].last, "17:45:00");
+});
+
+test("exo: fetchExoTripUpdates sends the Ocp-Apim-Subscription-Key header (Chrono auth)", async () => {
+  let receivedHeaders;
+  const fakeFetch = async (url, opts) => {
+    receivedHeaders = opts?.headers;
+    return {
+      ok: true,
+      arrayBuffer: async () => encodeEmptyFeedMessage(),
+    };
+  };
+  await fetchExoTripUpdates("https://portail-developpeur.chrono-saeiv.com/rt/tripUpdates", "abc123", fakeFetch);
+  assert.deepEqual(receivedHeaders, { "Ocp-Apim-Subscription-Key": "abc123" });
+});
+
+test("exo: fetchExoTripUpdates sends no auth header when no subscription key is configured", async () => {
+  let receivedHeaders;
+  const fakeFetch = async (url, opts) => {
+    receivedHeaders = opts?.headers;
+    return { ok: true, arrayBuffer: async () => encodeEmptyFeedMessage() };
+  };
+  await fetchExoTripUpdates("https://example.com/rt", undefined, fakeFetch);
+  assert.deepEqual(receivedHeaders, {});
 });

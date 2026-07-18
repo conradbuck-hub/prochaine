@@ -5,8 +5,16 @@
 import GtfsRealtimeBindings from "gtfs-realtime-bindings";
 import { secondsSinceMidnight, timeStringToSeconds, weekdayName } from "./metro.js";
 
-export async function fetchExoTripUpdates(url, fetchImpl = fetch) {
-  const res = await fetchImpl(url);
+// exo's RT feeds now go through the Chrono developer portal
+// (portail-developpeur.chrono-saeiv.com), which authenticates via the
+// Ocp-Apim-Subscription-Key header — a different scheme from STM's apiKey
+// header (see server/services/departures/bus.js). The old opendata.exo.quebec
+// endpoints are dead; EXO_GTFS_RT_TRIP_UPDATES_URL stays env-configurable so
+// swapping in the real Chrono URL doesn't require a code change.
+export async function fetchExoTripUpdates(url, subscriptionKey, fetchImpl = fetch) {
+  const res = await fetchImpl(url, {
+    headers: subscriptionKey ? { "Ocp-Apim-Subscription-Key": subscriptionKey } : {},
+  });
   if (!res.ok) {
     throw new Error(`exo GTFS-RT trip updates fetch failed: ${res.status}`);
   }
@@ -60,7 +68,10 @@ export async function getExoDepartures({ stopId, scheduleIndex, config, cache, n
     delayMap = await cache.getOrFetch(
       `exo-delays:${config.exo.tripUpdatesUrl}`,
       30_000,
-      async () => delayMapFromFeedMessage(await fetchExoTripUpdates(config.exo.tripUpdatesUrl, fetchImpl))
+      async () =>
+        delayMapFromFeedMessage(
+          await fetchExoTripUpdates(config.exo.tripUpdatesUrl, config.exo.subscriptionKey, fetchImpl)
+        )
     );
   }
   return departuresFromTimetable(entries, now, delayMap);

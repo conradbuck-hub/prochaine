@@ -18,6 +18,9 @@ export const config = {
     staticUrl: process.env.EXO_GTFS_STATIC_URL ?? "",
     tripUpdatesUrl: process.env.EXO_GTFS_RT_TRIP_UPDATES_URL ?? "",
     alertsUrl: process.env.EXO_GTFS_RT_ALERTS_URL ?? "",
+    // Chrono developer portal (portail-developpeur.chrono-saeiv.com) —
+    // sent as Ocp-Apim-Subscription-Key, distinct from STM's apiKey header.
+    subscriptionKey: process.env.EXO_SUBSCRIPTION_KEY ?? "",
   },
   rem: {
     staticUrl: process.env.REM_GTFS_STATIC_URL ?? "",

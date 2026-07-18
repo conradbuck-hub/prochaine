@@ -89,7 +89,12 @@ async function main() {
       config.stm.apiKey ? { apiKey: config.stm.apiKey } : {}
     ),
     checkStaticZip("REM (static GTFS)", config.rem.staticUrl),
-    checkGtfsRt("exo (GTFS-RT delays)", config.exo.tripUpdatesUrl, {}, { reportRouteIds: true }),
+    checkGtfsRt(
+      "exo (GTFS-RT delays)",
+      config.exo.tripUpdatesUrl,
+      config.exo.subscriptionKey ? { "Ocp-Apim-Subscription-Key": config.exo.subscriptionKey } : {},
+      { reportRouteIds: true }
+    ),
     checkBixi(),
     checkWeather(),
   ]);
