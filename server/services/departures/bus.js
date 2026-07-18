@@ -9,7 +9,7 @@ import GtfsRealtimeBindings from "gtfs-realtime-bindings";
 
 export async function fetchTripUpdates(url, apiKey, fetchImpl = fetch) {
   const res = await fetchImpl(url, {
-    headers: apiKey ? { apikey: apiKey } : {},
+    headers: apiKey ? { apiKey } : {},
   });
   if (!res.ok) {
     throw new Error(`STM GTFS-RT trip updates fetch failed: ${res.status}`);

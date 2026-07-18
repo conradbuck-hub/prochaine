@@ -4,7 +4,7 @@
 import GtfsRealtimeBindings from "gtfs-realtime-bindings";
 
 export async function fetchAlerts(url, apiKey, fetchImpl = fetch) {
-  const res = await fetchImpl(url, { headers: apiKey ? { apikey: apiKey } : {} });
+  const res = await fetchImpl(url, { headers: apiKey ? { apiKey } : {} });
   if (!res.ok) throw new Error(`Alerts fetch failed: ${res.status}`);
   const buffer = new Uint8Array(await res.arrayBuffer());
   return GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(buffer);

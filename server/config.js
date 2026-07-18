@@ -31,8 +31,8 @@ export const config = {
       "https://gbfs.velobixi.com/gbfs/en/station_information.json",
   },
   weather: {
-    apiUrl: process.env.WEATHER_API_URL ?? "",
-    apiKey: process.env.WEATHER_API_KEY ?? "",
+    // Open-Meteo — keyless, free; see server/services/weather.js.
+    apiUrl: process.env.WEATHER_API_URL ?? "https://api.open-meteo.com/v1/forecast",
     lat: Number(process.env.WEATHER_LAT ?? 45.5019),
     lon: Number(process.env.WEATHER_LON ?? -73.5674),
   },

@@ -7,6 +7,7 @@
 import "dotenv/config";
 import { config } from "../server/config.js";
 import GtfsRealtimeBindings from "gtfs-realtime-bindings";
+import { fetchWeather, normalizeOpenMeteoResponse } from "../server/services/weather.js";
 
 function pass(name, message, sample) {
   return { name, ok: true, message, sample };
@@ -16,7 +17,11 @@ function fail(name, message) {
   return { name, ok: false, message };
 }
 
-async function checkGtfsRt(name, url, headers) {
+// `reportRouteIds`: for feeds where "what routes does this actually carry"
+// is itself the open question (the exo feed's REM coverage — see
+// docs/BUILD-STAGES.md's known risks), surface the distinct routeIds
+// alongside the entity count instead of just a single sample entity.
+async function checkGtfsRt(name, url, headers, { reportRouteIds = false } = {}) {
   if (!url) return fail(name, "no URL configured in .env (see .env.example)");
   try {
     const res = await fetch(url, { headers });
@@ -24,6 +29,14 @@ async function checkGtfsRt(name, url, headers) {
     const buffer = new Uint8Array(await res.arrayBuffer());
     const feed = GtfsRealtimeBindings.transit_realtime.FeedMessage.decode(buffer);
     const count = feed.entity?.length ?? 0;
+
+    if (reportRouteIds) {
+      const routeIds = [
+        ...new Set((feed.entity ?? []).map((e) => e.tripUpdate?.trip?.routeId).filter(Boolean)),
+      ].sort();
+      return pass(name, `${count} feed entities`, { routeIds });
+    }
+
     return pass(name, `${count} feed entities`, feed.entity?.[0] ?? null);
   } catch (err) {
     return fail(name, err.message);
@@ -56,16 +69,13 @@ async function checkBixi() {
 }
 
 async function checkWeather() {
-  if (!config.weather.apiKey || !config.weather.apiUrl) {
-    return fail("Weather", "no WEATHER_API_URL / WEATHER_API_KEY configured (provider TBD in Stage 0)");
+  if (!config.weather.apiUrl) {
+    return fail("Weather", "no WEATHER_API_URL configured (see .env.example)");
   }
   try {
-    const res = await fetch(
-      `${config.weather.apiUrl}?lat=${config.weather.lat}&lon=${config.weather.lon}&key=${config.weather.apiKey}`
-    );
-    if (!res.ok) return fail("Weather", `HTTP ${res.status}`);
-    const data = await res.json();
-    return pass("Weather", "reachable", data);
+    const raw = await fetchWeather(config.weather.apiUrl, config.weather.lat, config.weather.lon);
+    const normalized = normalizeOpenMeteoResponse(raw);
+    return pass("Weather", "reachable", normalized);
   } catch (err) {
     return fail("Weather", err.message);
   }
@@ -73,9 +83,13 @@ async function checkWeather() {
 
 async function main() {
   const checks = await Promise.all([
-    checkGtfsRt("STM (bus GTFS-RT)", config.stm.tripUpdatesUrl, config.stm.apiKey ? { apikey: config.stm.apiKey } : {}),
+    checkGtfsRt(
+      "STM (bus GTFS-RT)",
+      config.stm.tripUpdatesUrl,
+      config.stm.apiKey ? { apiKey: config.stm.apiKey } : {}
+    ),
     checkStaticZip("REM (static GTFS)", config.rem.staticUrl),
-    checkGtfsRt("exo (GTFS-RT delays)", config.exo.tripUpdatesUrl, {}),
+    checkGtfsRt("exo (GTFS-RT delays)", config.exo.tripUpdatesUrl, {}, { reportRouteIds: true }),
     checkBixi(),
     checkWeather(),
   ]);
