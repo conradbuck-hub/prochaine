@@ -7,25 +7,51 @@ import {
   nextOnboardingStep,
   onboardingPrompt,
   applyOnboardingAnswer,
+  isOnboardingSkip,
+  classifyWorkOrSchool,
+  skipOnboardingStep,
 } from "../server/services/onboarding.js";
 import { teachTerm, addAlias, forgetTerm } from "../server/services/lexicon.js";
 import { defaultProfile, loadProfile, saveProfile } from "../server/services/userProfile.js";
 import { findStop } from "../server/services/stopMatcher.js";
 
-test("onboarding: asks for home first, then work", () => {
+test("onboarding: asks for home first, then work-or-school", () => {
   let profile = defaultProfile();
   assert.equal(nextOnboardingStep(profile), "home");
   assert.match(onboardingPrompt("home", "en"), /home/i);
 
   profile = applyOnboardingAnswer(profile, "home", { id: "stm:2001", name: "Sherbrooke / Atwater" });
-  assert.equal(nextOnboardingStep(profile), "work");
+  assert.equal(nextOnboardingStep(profile), "workOrSchool");
   assert.equal(profile.onboarded, false);
 
-  profile = applyOnboardingAnswer(profile, "work", { id: "exo:3001", name: "Gare Vaudreuil" });
+  profile = applyOnboardingAnswer(profile, "workOrSchool", { id: "exo:3001", name: "Gare Vaudreuil" }, "Gare Vaudreuil");
   assert.equal(nextOnboardingStep(profile), null);
   assert.equal(profile.onboarded, true);
   assert.equal(profile.home.name, "Sherbrooke / Atwater");
   assert.equal(profile.work.name, "Gare Vaudreuil");
+  assert.equal(profile.school, null);
+});
+
+test("onboarding: work-or-school answer classifies as school when school words appear", () => {
+  const key = classifyWorkOrSchool("mon cégep, c'est Gare Centrale");
+  assert.equal(key, "school");
+  let profile = applyOnboardingAnswer(defaultProfile(), "workOrSchool", { id: "rem:1", name: "Gare Centrale" }, "mon cégep, c'est Gare Centrale");
+  assert.equal(profile.school.name, "Gare Centrale");
+  assert.equal(profile.work, null);
+});
+
+test("onboarding: skip moves past a step without setting it", () => {
+  assert.equal(isOnboardingSkip("skip"), true);
+  assert.equal(isOnboardingSkip(" Passer "), true);
+  assert.equal(isOnboardingSkip("Sherbrooke"), false);
+
+  let profile = skipOnboardingStep(defaultProfile(), "home");
+  assert.equal(profile.home, null);
+  assert.equal(nextOnboardingStep(profile), "workOrSchool");
+
+  profile = skipOnboardingStep(profile, "workOrSchool");
+  assert.equal(nextOnboardingStep(profile), null);
+  assert.equal(profile.onboarded, true);
 });
 
 test("onboarding answer resolves through the same typo-tolerant stop matcher", () => {
@@ -60,7 +86,7 @@ test("profile persists across a simulated restart", async () => {
   try {
     let profile = defaultProfile();
     profile = applyOnboardingAnswer(profile, "home", { id: "stm:2001", name: "Sherbrooke / Atwater" });
-    profile = applyOnboardingAnswer(profile, "work", { id: "exo:3001", name: "Gare Vaudreuil" });
+    profile = applyOnboardingAnswer(profile, "workOrSchool", { id: "exo:3001", name: "Gare Vaudreuil" }, "Gare Vaudreuil");
     profile = teachTerm(profile, "mon bus", "24");
     await saveProfile(profile, profilePath);
 

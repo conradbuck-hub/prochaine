@@ -6,131 +6,104 @@
 <title>Prochaine — Brand Guide</title>
 <style>
   :root {
-    --ink: #14181C;
-    --paper: #F5F3EE;
-    --line-a: #0C8353;
-    --line-b: #D9631E;
-    --line-c: #D9A404;
-    --line-d: #1F5FA8;
-    --card: #ffffff;
-    --border: rgba(0,0,0,0.1);
+    --ground: #0E0F11; --surface: #191B1E; --surface-2: #232629;
+    --text: #F2F3F4; --muted: #9AA0A6; --active-fg: #FFD900;
+    --line-green: #008E5B; --line-orange: #EF8122; --line-yellow: #FFD900; --line-blue: #0083CA;
   }
-  @media (prefers-color-scheme: dark) {
+  @media (prefers-color-scheme: light) {
     :root {
-      --ink: #EDEFF2;
-      --paper: #101316;
-      --card: #181C20;
-      --border: rgba(255,255,255,0.12);
+      --ground: #F7F7F5; --surface: #FFFFFF; --surface-2: #E2E2DE;
+      --text: #16181A; --muted: #6B7076; --active-fg: #B28F00;
     }
   }
   * { box-sizing: border-box; }
   body {
-    margin: 0;
-    padding: 2.5rem 1.5rem 4rem;
-    background: var(--paper);
-    color: var(--ink);
-    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
-    line-height: 1.5;
+    margin: 0; padding: 2.5rem 1.5rem 4rem; background: var(--ground); color: var(--text);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif; line-height: 1.5;
   }
   .wrap { max-width: 760px; margin: 0 auto; }
-  h1 {
-    font-size: 2.4rem;
-    margin: 0 0 0.25rem;
-    letter-spacing: -0.02em;
-  }
-  .tagline { opacity: 0.7; margin: 0 0 2.5rem; font-size: 1.05rem; }
+  h1 { font-size: 2.4rem; margin: 0 0 0.25rem; letter-spacing: -0.02em; }
+  .tagline { color: var(--muted); margin: 0 0 2.5rem; font-size: 1.05rem; }
   h2 {
-    font-size: 0.85rem;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    opacity: 0.6;
-    margin: 2.5rem 0 1rem;
-    border-bottom: 1px solid var(--border);
-    padding-bottom: 0.5rem;
+    font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted);
+    margin: 2.5rem 0 1rem; border-bottom: 1px solid var(--surface-2); padding-bottom: 0.5rem;
   }
   .swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; }
-  .swatch {
-    border-radius: 10px;
-    padding: 1rem;
-    color: #fff;
-    font-size: 0.85rem;
-  }
+  .swatch { border-radius: 10px; padding: 1rem; color: #F7F7F5; font-size: 0.85rem; }
+  .swatch.yellow { color: #0E0F11; }
   .swatch b { display: block; font-size: 0.95rem; margin-bottom: 0.2rem; }
-  .card {
-    background: var(--card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 1rem 1.25rem;
-    margin-bottom: 0.75rem;
-  }
-  .bubble {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    font-variant-numeric: tabular-nums;
-  }
-  .chevron {
-    width: 0; height: 0;
-    border-top: 7px solid transparent;
-    border-bottom: 7px solid transparent;
-    border-left: 10px solid currentColor;
-    flex-shrink: 0;
-  }
-  .a { color: var(--line-a); } .b { color: var(--line-b); }
-  .c { color: var(--line-c); } .d { color: var(--line-d); }
+  .card { background: var(--surface); border: 1px solid var(--surface-2); border-radius: 12px; padding: 1rem 1.25rem; margin-bottom: 0.75rem; }
+  .wordmark { display: flex; align-items: center; gap: 0.25rem; text-transform: uppercase; letter-spacing: 0.16em; font-weight: 800; }
+  .disc { width: 1.75rem; height: 1.75rem; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 0.8rem; color: #F7F7F5; }
+  .disc.y { background: var(--line-yellow); color: #0E0F11; }
+  .disc.g { background: var(--line-green); }
+  .disc.o { background: var(--line-orange); }
+  .disc.b { background: var(--line-blue); }
+  .band { display: flex; height: 8px; border-radius: 4px; overflow: hidden; margin-top: 1rem; }
+  .band span { flex: 1; }
   .example { font-size: 1.05rem; }
-  .example small { display: block; opacity: 0.55; font-size: 0.8rem; margin-top: 0.15rem; }
-  code {
-    background: var(--border);
-    padding: 0.1rem 0.4rem;
-    border-radius: 4px;
-    font-size: 0.85em;
-  }
+  .example small { display: block; color: var(--muted); font-size: 0.8rem; margin-top: 0.15rem; }
+  code { background: var(--surface-2); padding: 0.1rem 0.4rem; border-radius: 4px; font-size: 0.85em; }
 </style>
 </head>
 <body>
 <div class="wrap">
   <h1>Prochaine</h1>
-  <p class="tagline">Montreal transit, one chat window. Flip-board energy, no clutter, no invented schedules.</p>
+  <p class="tagline">Le réseau, en une question. Borrows the SYSTEM of Montreal transit signage, never its assets.</p>
 
-  <h2>Color — mode accents</h2>
+  <h2>Colour — dark (station signage)</h2>
   <div class="swatches">
-    <div class="swatch" style="background:var(--line-a)"><b>Line A</b>métro / REM</div>
-    <div class="swatch" style="background:var(--line-b)"><b>Line B</b>bus</div>
-    <div class="swatch" style="background:var(--line-c)"><b>Line C</b>exo</div>
-    <div class="swatch" style="background:var(--line-d)"><b>Line D</b>BIXI / weather</div>
+    <div class="swatch" style="background:#0E0F11; border:1px solid #333"><b>Ground</b>#0E0F11</div>
+    <div class="swatch" style="background:#191B1E"><b>Surface</b>#191B1E</div>
+    <div class="swatch" style="background:#232629"><b>Surface-2</b>#232629</div>
+    <div class="swatch yellow" style="background:#FFD900"><b>Active</b>#FFD900</div>
   </div>
 
-  <h2>Departure bubbles</h2>
-  <div class="card"><div class="bubble a"><span class="chevron"></span> 3 min · Métro verte vers Angrignon</div></div>
-  <div class="card"><div class="bubble b"><span class="chevron"></span> 3 min · 24 vers Côte-Vertu</div></div>
-  <div class="card"><div class="bubble c"><span class="chevron"></span> 11 min · exo4 vers Mont-Saint-Hilaire</div></div>
-  <div class="card"><div class="bubble d"><span class="chevron"></span> 6 vélos, 2 bornes · BIXI Peel / Ste-Catherine</div></div>
+  <h2>Colour — light (métro map)</h2>
+  <div class="swatches">
+    <div class="swatch" style="background:#F7F7F5; color:#16181A; border:1px solid #ddd"><b>Ground</b>#F7F7F5</div>
+    <div class="swatch" style="background:#FFFFFF; color:#16181A; border:1px solid #ddd"><b>Surface</b>#FFFFFF</div>
+    <div class="swatch" style="background:#E2E2DE; color:#16181A"><b>Surface-2</b>#E2E2DE</div>
+    <div class="swatch" style="background:#B28F00"><b>Active</b>#B28F00 (not raw yellow)</div>
+  </div>
+
+  <h2>Line colours — identical in both modes, meaningful use only</h2>
+  <div class="swatches">
+    <div class="swatch" style="background:#008E5B"><b>Vert</b>#008E5B</div>
+    <div class="swatch" style="background:#EF8122"><b>Orange</b>#EF8122</div>
+    <div class="swatch yellow" style="background:#FFD900"><b>Jaune</b>#FFD900</div>
+    <div class="swatch" style="background:#0083CA"><b>Bleu</b>#0083CA</div>
+  </div>
+
+  <h2>Wordmark</h2>
+  <div class="card">
+    <div class="wordmark">
+      <span>Chat-</span>
+      <span class="disc g">P</span><span class="disc o">R</span><span class="disc y">O</span><span class="disc b">C</span>
+      <span class="disc g">H</span><span class="disc o">A</span><span class="disc y">I</span><span class="disc b">N</span><span class="disc g">E</span>
+    </div>
+    <div class="band"><span style="background:#008E5B"></span><span style="background:#EF8122"></span><span style="background:#FFD900"></span><span style="background:#0083CA"></span></div>
+  </div>
 
   <h2>Tone examples</h2>
   <div class="card example">
-    « 3 min · 24 vers Côte-Vertu. Prochain dans 11 min. »
-    <small>FR — neutral, declarative, no filler</small>
+    « Je comprends la frustration — prochain passage à 17 h 42. »
+    <small>FR — one clean acknowledgment clause, then straight to the answer</small>
   </div>
   <div class="card example">
-    "3 min · 24 toward Côte-Vertu. Next in 11 min."
-    <small>EN — same information, same register</small>
+    "Not a great morning for it — next 24 is in 6 minutes."
+    <small>EN — same discipline, facts before sympathy</small>
   </div>
   <div class="card example">
-    « Je comprends, c'est frustrant. Le 105 est retardé de 8 min — voici le
-    prochain départ fiable. »
-    <small>Frustration handling — brief acknowledgment, straight back to useful information</small>
+    « Effectivement, la ligne orange est interrompue entre Berri et Jean-Talon — un service de navettes est en place. »
+    <small>Leads with the disruption when it explains the user's mood</small>
   </div>
 
-  <h2>Type &amp; numerals</h2>
-  <p>System sans-serif stack (<code>-apple-system, "Segoe UI", Roboto,
-  sans-serif</code>). Numerals rendered tabular so countdowns don't jitter
-  horizontally as digits change.</p>
+  <h2>Type</h2>
+  <p>System sans-serif stack only (<code>-apple-system, "Segoe UI", Roboto, sans-serif</code>) — zero font downloads, speed is brand behaviour. Uppercase + 0.16em tracking for wordmark/header only. Quebec 24h times: « 17 h 42 », « 0 h 45 ».</p>
 
   <h2>What this is not</h2>
-  <p>Not a reproduction of STM's trademarked logo or roundel. Not a
-  photographic or illustrated brand. One user, one screen, ~$5/month to
-  run — the brand should cost nothing to render and nothing to maintain.</p>
+  <p>Not a reproduction of STM's trademarked logo or roundel. No fifth hue, no gradients, no shadows. No language toggle — language is handled conversationally. One user, one screen, ~$5/month to run.</p>
 </div>
 </body>
 </html>

@@ -1,7 +1,7 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { departuresFromFrequencies, timeStringToSeconds } from "../server/services/departures/metro.js";
-import { departuresFromTimetable, delayMapFromFeedMessage } from "../server/services/departures/exo.js";
+import { departuresFromFrequencies, serviceHoursFromFrequencies, timeStringToSeconds } from "../server/services/departures/metro.js";
+import { departuresFromTimetable, serviceHoursFromTimetable, delayMapFromFeedMessage } from "../server/services/departures/exo.js";
 import { departuresFromFeedMessage } from "../server/services/departures/bus.js";
 
 test("metro: frequency path computes minutes to next periodic departure", () => {
@@ -142,4 +142,37 @@ test("bus: live path computes minutesAway from decoded feed entities", () => {
 
 test("timeStringToSeconds handles post-midnight GTFS times", () => {
   assert.equal(timeStringToSeconds("25:30:00"), 25 * 3600 + 30 * 60);
+});
+
+test("metro: service hours report the active frequency window", () => {
+  const now = new Date();
+  now.setHours(12, 0, 0, 0);
+  const entries = [
+    {
+      routeId: "1",
+      headsign: "Angrignon",
+      startTime: "05:30:00",
+      endTime: "24:00:00",
+      headwaySecs: 240,
+      serviceDays: ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
+    },
+  ];
+  const hours = serviceHoursFromFrequencies(entries, now);
+  assert.equal(hours.length, 1);
+  assert.equal(hours[0].opens, "05:30:00");
+  assert.equal(hours[0].closes, "24:00:00");
+});
+
+test("exo: service hours report first/last departure per route", () => {
+  const now = new Date();
+  now.setHours(6, 0, 0, 0);
+  const entries = [
+    { routeId: "exo4", tripId: "T1", headsign: "Mont-Saint-Hilaire", departureTime: "08:15:00", serviceDays: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] },
+    { routeId: "exo4", tripId: "T2", headsign: "Mont-Saint-Hilaire", departureTime: "17:45:00", serviceDays: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] },
+    { routeId: "exo4", tripId: "T3", headsign: "Mont-Saint-Hilaire", departureTime: "12:00:00", serviceDays: ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"] },
+  ];
+  const hours = serviceHoursFromTimetable(entries, now);
+  assert.equal(hours.length, 1);
+  assert.equal(hours[0].first, "08:15:00");
+  assert.equal(hours[0].last, "17:45:00");
 });

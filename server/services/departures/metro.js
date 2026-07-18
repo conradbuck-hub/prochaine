@@ -51,3 +51,23 @@ export function getMetroDepartures({ stopId, scheduleIndex, now = new Date() }) 
   const entries = scheduleIndex.frequencies?.[stopId] ?? [];
   return departuresFromFrequencies(entries, now);
 }
+
+// Service hours = the frequency window itself (start/end of the active
+// period) for each route serving the stop today — the honest "first/last"
+// answer for a frequency-based mode, per docs/SPEC.md.
+export function serviceHoursFromFrequencies(frequencyEntries, now = new Date()) {
+  const today = weekdayName(now);
+  return frequencyEntries
+    .filter((entry) => entry.serviceDays.includes(today))
+    .map((entry) => ({
+      route: entry.routeId,
+      headsign: entry.headsign,
+      opens: entry.startTime,
+      closes: entry.endTime,
+    }));
+}
+
+export function getMetroServiceHours({ stopId, scheduleIndex, now = new Date() }) {
+  const entries = scheduleIndex.frequencies?.[stopId] ?? [];
+  return serviceHoursFromFrequencies(entries, now);
+}

@@ -29,7 +29,7 @@ npm install
 cp .env.example .env   # fill in keys as they become available
 npm test                # smoke tests against synthetic fixtures
 npm run test:feeds      # checks the 5 live sources (expected to fail until Stage 0 keys exist)
-npm run preprocess      # streams GTFS static data into server/data/compiled/*.json
+npm run preprocess -- --stm=<path> --exo=<path>   # streams GTFS static data into server/data/compiled/*.json
 npm run dev             # start the server locally
 ```
 

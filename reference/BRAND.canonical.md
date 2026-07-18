@@ -1,6 +1,6 @@
 # Prochaine — Brand rules (locked, v1.0)
 
-Rendered reference: `docs/brand-guide.html` (in this repo).
+Full visual guide: prochaine-brand-guide.html (kept outside repo).
 These are the rules the CODE must obey.
 
 ## Concept
@@ -33,9 +33,9 @@ No STM/exo/REM/BIXI logos or marks, ever.
 
 ## Wordmark
 "Chat-" then P·R·O·C·H·A·I·N·E as discs cycling g→o→y→b.
-Yellow discs = dark text. Reproduce from `public/index.html` markup.
+Yellow discs = dark text. Reproduce from public/index.html markup.
 
-## Voice (enforced in `server/llm/prompts/answer-formatter.md` — do not dilute)
+## Voice (enforced in prompts/answer.txt — do not dilute)
 Understands the street, answers like the institution.
 - Casual, mixed, frustrated, or misspelled input in → ONE clean language out (the language
   the user leads with; standing preference set by asking, e.g.
@@ -45,7 +45,7 @@ Understands the street, answers like the institution.
 - 1–3 sentences. Facts before sympathy. Lead with the disruption.
 - Never apologize for/represent the STM. Never invent schedules.
 - Plain language out — short, common words, digits. Never correct or
-  comment on the user's spelling, grammar, or accents. Every literacy
+  comment on the user’s spelling, grammar, or accents. Every literacy
   level is a first-class user.
 - Explanation, not prediction (events/weather warn from known facts only).
 - Tagline: « Prochaine — le réseau, en une question. »
@@ -53,4 +53,4 @@ Understands the street, answers like the institution.
 ## Backlog item this locks in
 Answers about a specific line get a left rule in that line's colour
 (client-side: detect line in answer → set border colour). Currently
-neutral; implement in Phase 3 (see `docs/BUILD-STAGES.md`).
+neutral; implement in Phase 3.

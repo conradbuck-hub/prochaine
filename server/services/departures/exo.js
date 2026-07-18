@@ -65,3 +65,31 @@ export async function getExoDepartures({ stopId, scheduleIndex, config, cache, n
   }
   return departuresFromTimetable(entries, now, delayMap);
 }
+
+// Service hours for a timetable-driven mode = the day's first and last
+// scheduled departure per route/headsign — trains are sparse enough that
+// this is a genuinely useful answer, unlike a frequency band.
+export function serviceHoursFromTimetable(timetableEntries, now = new Date()) {
+  const today = weekdayName(now);
+  const byRoute = new Map();
+
+  for (const entry of timetableEntries) {
+    if (!entry.serviceDays.includes(today)) continue;
+    const key = `${entry.routeId}|${entry.headsign}`;
+    const seconds = timeStringToSeconds(entry.departureTime);
+    const existing = byRoute.get(key);
+    if (!existing) {
+      byRoute.set(key, { route: entry.routeId, headsign: entry.headsign, first: entry.departureTime, last: entry.departureTime, firstSec: seconds, lastSec: seconds });
+    } else {
+      if (seconds < existing.firstSec) { existing.first = entry.departureTime; existing.firstSec = seconds; }
+      if (seconds > existing.lastSec) { existing.last = entry.departureTime; existing.lastSec = seconds; }
+    }
+  }
+
+  return [...byRoute.values()].map(({ route, headsign, first, last }) => ({ route, headsign, first, last }));
+}
+
+export function getExoServiceHours({ stopId, scheduleIndex, now = new Date() }) {
+  const entries = scheduleIndex.timetable?.[stopId] ?? [];
+  return serviceHoursFromTimetable(entries, now);
+}

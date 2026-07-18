@@ -2,7 +2,7 @@
 // cache, per the "never invent a schedule" rule extending to "never serve a
 // stale answer" either.
 
-const CACHE_NAME = "prochaine-shell-v1";
+const CACHE_NAME = "prochaine-shell-v2";
 const SHELL_ASSETS = [
   "/",
   "/styles.css",

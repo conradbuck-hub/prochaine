@@ -8,9 +8,11 @@ export function defaultProfile() {
   return {
     home: null, // { id, name }
     work: null, // { id, name }
+    school: null, // { id, name }
     aliases: {}, // e.g. { "bus home": "<stopId>" }
     lexicon: {}, // e.g. { "mon bus": "24" }
-    language: null, // "fr" | "en" | null until first message
+    language: null, // the standing preference ("fr" | "en"), set only by an explicit set_language turn
+    skippedOnboarding: [], // e.g. ["home"] — steps the user explicitly skipped
     onboarded: false,
   };
 }

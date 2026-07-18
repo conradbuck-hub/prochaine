@@ -1,14 +1,30 @@
 #!/usr/bin/env node
-// One-off generator for the PWA icons — a flat ink-square background with
-// the brand's chevron mark (see docs/BRAND.md), written directly as PNG
-// bytes so no image-processing dependency is needed for two static icons.
+// PWA icon generator — the line-disc "P" over a four-colour band on
+// signage black, per docs/BRAND.md. Written directly as PNG bytes so no
+// image-processing dependency is needed for two static icons.
 
 import { deflateSync } from "node:zlib";
 import { writeFile, mkdir } from "node:fs/promises";
 import { fileURLToPath } from "node:url";
 
-const INK = [0x14, 0x18, 0x1c];
-const CHEVRON = [0xd9, 0x63, 0x1e];
+const SIGNAGE_BLACK = [0x0e, 0x0f, 0x11];
+const LINE_GREEN = [0x00, 0x8e, 0x5b];
+const LINE_ORANGE = [0xef, 0x81, 0x22];
+const LINE_YELLOW = [0xff, 0xd9, 0x00];
+const LINE_BLUE = [0x00, 0x83, 0xca];
+const WHITE = [0xf7, 0xf7, 0xf5];
+
+// 5x7 block bitmap for "P" — the wordmark's first disc letter (green, per
+// the g→o→y→b cycle: P=green).
+const GLYPH_P = [
+  "11110",
+  "10001",
+  "10001",
+  "11110",
+  "10000",
+  "10000",
+  "10000",
+];
 
 function crc32(buf) {
   let c;
@@ -35,21 +51,47 @@ function chunk(type, data) {
   return Buffer.concat([lenBuf, typeBuf, data, crcBuf]);
 }
 
-// Point-in-triangle test for a chevron: a right-pointing triangle inscribed
-// in the square's middle third, matching the departure-bubble mark in the
-// brand guide.
-function isInChevron(x, y, size) {
-  const cx = size / 2;
-  const cy = size / 2;
-  const half = size * 0.22;
-  const tipX = cx + half;
-  const baseX = cx - half;
-  const topY = cy - half;
-  const botY = cy + half;
-  if (x < baseX || x > tipX) return false;
-  const t = (x - baseX) / (tipX - baseX); // 0 at base, 1 at tip
-  const halfHeightAtX = (half) * (1 - t);
-  return Math.abs(y - cy) <= halfHeightAtX;
+function isInDisc(x, y, cx, cy, radius) {
+  const dx = x - cx;
+  const dy = y - cy;
+  return dx * dx + dy * dy <= radius * radius;
+}
+
+function isInGlyph(x, y, cx, cy, glyphSize) {
+  const rows = GLYPH_P.length;
+  const cols = GLYPH_P[0].length;
+  const cellW = glyphSize / cols;
+  const cellH = glyphSize / rows;
+  const left = cx - glyphSize / 2;
+  const top = cy - glyphSize / 2;
+  const col = Math.floor((x - left) / cellW);
+  const row = Math.floor((y - top) / cellH);
+  if (col < 0 || col >= cols || row < 0 || row >= rows) return false;
+  return GLYPH_P[row][col] === "1";
+}
+
+function bandColorAt(x, size) {
+  const segment = Math.floor((x / size) * 4);
+  return [LINE_GREEN, LINE_ORANGE, LINE_YELLOW, LINE_BLUE][Math.min(segment, 3)];
+}
+
+// Disc fill is green, so the "P" glyph is white-on-green (only a yellow
+// disc fill would need dark text, per docs/BRAND.md).
+function pixelColor(x, y, size) {
+  const discRadius = size * 0.28;
+  const discCx = size / 2;
+  const discCy = size * 0.42;
+  const bandTop = size * 0.78;
+  const bandBottom = size * 0.92;
+
+  if (isInDisc(x, y, discCx, discCy, discRadius)) {
+    if (isInGlyph(x, y, discCx, discCy, discRadius * 1.15)) return WHITE;
+    return LINE_GREEN;
+  }
+  if (y >= bandTop && y < bandBottom) {
+    return bandColorAt(x, size);
+  }
+  return SIGNAGE_BLACK;
 }
 
 function buildIconPng(size) {
@@ -58,7 +100,7 @@ function buildIconPng(size) {
   for (let y = 0; y < size; y++) {
     raw[offset++] = 0; // filter type: none
     for (let x = 0; x < size; x++) {
-      const [r, g, b] = isInChevron(x, y, size) ? CHEVRON : INK;
+      const [r, g, b] = pixelColor(x, y, size);
       raw[offset++] = r;
       raw[offset++] = g;
       raw[offset++] = b;

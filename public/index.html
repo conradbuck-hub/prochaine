@@ -7,20 +7,42 @@
 <link rel="manifest" href="/manifest.webmanifest">
 <link rel="icon" href="/icons/icon-192.png">
 <link rel="apple-touch-icon" href="/icons/icon-192.png">
-<meta name="theme-color" content="#14181C">
+<meta name="theme-color" content="#0E0F11">
 <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
 <header>
-  <span class="chevron"></span>
-  <h1>Prochaine</h1>
+  <div class="wordmark" aria-label="Prochaine">
+    <span class="chat-prefix">Chat-</span>
+    <span class="disc disc-g">P</span>
+    <span class="disc disc-o">R</span>
+    <span class="disc disc-y">O</span>
+    <span class="disc disc-b">C</span>
+    <span class="disc disc-g">H</span>
+    <span class="disc disc-o">A</span>
+    <span class="disc disc-y">I</span>
+    <span class="disc disc-b">N</span>
+    <span class="disc disc-g">E</span>
+  </div>
+  <button id="theme-toggle" type="button" aria-label="Theme: auto"></button>
 </header>
+<div class="line-band" aria-hidden="true"><span class="g"></span><span class="o"></span><span class="y"></span><span class="b"></span></div>
 
-<div id="thread" role="log" aria-live="polite"></div>
+<div id="thread" role="log" aria-live="polite">
+  <div id="empty-state">
+    <p class="tagline">Prochaine — le réseau, en une question.</p>
+    <div class="examples">
+      <button type="button" class="example-chip">Quand est le prochain autobus?</button>
+      <button type="button" class="example-chip">À quelle heure passe le bus?</button>
+      <button type="button" class="example-chip">Horaire du 24</button>
+      <button type="button" class="example-chip">Le prochain passage?</button>
+    </div>
+  </div>
+</div>
 
 <form id="composer" autocomplete="off">
-  <input id="message" name="message" type="text" placeholder="Prochain métro / next bus…" required>
-  <button type="submit">→</button>
+  <input id="message" name="message" type="text" placeholder="Prochaine station?" required>
+  <button type="submit" aria-label="Send">→</button>
 </form>
 
 <script src="/app.js"></script>
