@@ -1,0 +1,25 @@
+{
+  "name": "prochaine",
+  "version": "0.1.0",
+  "description": "A personal, bilingual transit chatbot for Montreal — STM métro/bus, REM, exo, BIXI, and weather in one chat window.",
+  "private": true,
+  "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node server/index.js",
+    "dev": "node --watch server/index.js",
+    "test": "node --test test/*.test.js",
+    "test:feeds": "node scripts/test-feeds.js",
+    "preprocess": "node scripts/preprocess-gtfs.js"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.32.0",
+    "csv-parse": "^5.6.0",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "gtfs-realtime-bindings": "^1.1.1",
+    "yauzl": "^3.1.3"
+  }
+}

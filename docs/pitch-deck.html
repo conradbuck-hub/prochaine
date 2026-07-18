@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prochaine — Deck</title>
+<style>
+  :root {
+    --ink: #14181C; --paper: #F5F3EE; --card: #ffffff; --border: rgba(0,0,0,0.12);
+    --line-a: #0C8353; --line-b: #D9631E; --line-c: #D9A404; --line-d: #1F5FA8;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --ink: #EDEFF2; --paper: #101316; --card: #181C20; --border: rgba(255,255,255,0.14); }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: var(--paper); color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  section.slide {
+    min-height: 100vh;
+    padding: 3rem 1.75rem;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    max-width: 780px;
+    margin: 0 auto;
+    border-bottom: 1px solid var(--border);
+  }
+  .tag {
+    font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;
+    opacity: 0.55; margin-bottom: 0.75rem;
+  }
+  h1 { font-size: 2.2rem; margin: 0 0 0.5rem; letter-spacing: -0.02em; }
+  h2 { font-size: 1.6rem; margin: 0 0 1rem; letter-spacing: -0.01em; }
+  p.lead { font-size: 1.15rem; opacity: 0.85; margin: 0 0 1.5rem; max-width: 60ch; }
+  ul { padding-left: 1.2rem; }
+  li { margin-bottom: 0.5rem; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px,1fr)); gap: 1rem; margin-top: 1rem; }
+  .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 1rem 1.15rem; }
+  .card b { display: block; margin-bottom: 0.3rem; }
+  .accent-a { border-left: 4px solid var(--line-a); }
+  .accent-b { border-left: 4px solid var(--line-b); }
+  .accent-c { border-left: 4px solid var(--line-c); }
+  .accent-d { border-left: 4px solid var(--line-d); }
+  .cover { text-align: left; }
+  .cover h1 { font-size: 3rem; }
+  .num { position: absolute; top: 1.25rem; right: 1.75rem; font-size: 0.8rem; opacity: 0.4; }
+  section.slide { position: relative; }
+  table { width: 100%; border-collapse: collapse; margin-top: 1rem; font-size: 0.95rem; }
+  th, td { text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--border); }
+  .quote { font-size: 1.2rem; font-style: italic; opacity: 0.85; border-left: 3px solid var(--border); padding-left: 1rem; margin: 1rem 0; }
+  @media print {
+    section.slide { break-after: page; min-height: 100vh; }
+  }
+</style>
+</head>
+<body>
+
+<section class="slide cover"><div class="num">01 / 16</div>
+  <div class="tag">Prochaine</div>
+  <h1>Prochaine</h1>
+  <p class="lead">A personal, bilingual transit chatbot for Montreal —
+  one chat window covering STM métro and bus, REM, exo, BIXI, and weather.
+  Installed as a PWA on a phone. Built for one person, to be at a bus stop
+  in the cold and just ask.</p>
+</section>
+
+<section class="slide"><div class="num">02 / 16</div>
+  <div class="tag">Problem</div>
+  <h2>Five apps to leave the house</h2>
+  <p class="lead">STM's app for métro and bus, Transit or exo's app for
+  commuter rail, the BIXI app for bikes, a weather app to know whether any of
+  it matters today — and none of them speak the way you actually talk.</p>
+  <div class="quote">"sherbrook atwatter c'est quoi le prochain" shouldn't
+  need a perfectly-typed, perfectly-accented query to get an answer.</div>
+</section>
+
+<section class="slide"><div class="num">03 / 16</div>
+  <div class="tag">Solution</div>
+  <h2>One chat window</h2>
+  <p class="lead">Ask in whatever register, spelling, or language you'd
+  actually use. Get back one clean answer, in one language, sourced from
+  real feeds — not a bot's best guess.</p>
+</section>
+
+<section class="slide"><div class="num">04 / 16</div>
+  <div class="tag">Core rule</div>
+  <h2>The LLM never invents a schedule</h2>
+  <p class="lead">The model has exactly two jobs: parse the question, phrase
+  the answer. Every departure time, delay, or alert comes from code
+  querying a real feed. If a feed is down, the answer says so.</p>
+</section>
+
+<section class="slide"><div class="num">05 / 16</div>
+  <div class="tag">Coverage</div>
+  <h2>Every way this one person moves</h2>
+  <div class="grid">
+    <div class="card accent-a"><b>Métro / REM</b>Frequency-based, both lines this user rides</div>
+    <div class="card accent-b"><b>Bus</b>Live GTFS-RT, traffic-affected routes</div>
+    <div class="card accent-c"><b>exo</b>Commuter rail timetable + live delays</div>
+    <div class="card accent-d"><b>BIXI + weather</b>Nearest dock, and a delay-risk modifier</div>
+  </div>
+</section>
+
+<section class="slide"><div class="num">06 / 16</div>
+  <div class="tag">Engine</div>
+  <h2>Three paths, because the feeds are different</h2>
+  <table>
+    <tr><th>Mode</th><th>Path</th><th>Why</th></tr>
+    <tr><td>Bus</td><td>Live RT</td><td>Frequent, traffic-affected — only live is trustworthy</td></tr>
+    <tr><td>Métro / REM</td><td>Frequency tables</td><td>Fixed headways — "every 4 min" is the honest answer</td></tr>
+    <tr><td>exo</td><td>Timetable + delays</td><td>Real timetable; only the delay is live</td></tr>
+  </table>
+</section>
+
+<section class="slide"><div class="num">07 / 16</div>
+  <div class="tag">Personalization</div>
+  <h2>Two questions, then it remembers</h2>
+  <ul>
+    <li>Onboarding: where's home, where's work or school</li>
+    <li>Aliases: "bus home" just works</li>
+    <li>Taught lexicon: « quand je dis mon bus, c'est le 24 » sticks</li>
+    <li>Language preference is conversational, not a settings screen</li>
+  </ul>
+</section>
+
+<section class="slide"><div class="num">08 / 16</div>
+  <div class="tag">Interface</div>
+  <h2>One screen, installed like an app</h2>
+  <p class="lead">A single chat thread, PWA-installable on the home screen,
+  light and dark themes that follow the system — no toggle to maintain, no
+  navigation to get lost in.</p>
+</section>
+
+<section class="slide"><div class="num">09 / 16</div>
+  <div class="tag">Status</div>
+  <h2>One form away from real</h2>
+  <p class="lead">Design, code, brand, and docs are complete and internally
+  consistent. Blocked at Stage 0 on exactly one thing: the STM developer
+  registration. About three evenings from living on the home screen after
+  that.</p>
+</section>
+
+<section class="slide"><div class="num">10 / 16</div>
+  <div class="tag">Roadmap</div>
+  <h2>Six gated stages</h2>
+  <ol>
+    <li>Keys &amp; feeds</li>
+    <li>Data spine (GTFS preprocessing)</li>
+    <li>Chat end-to-end</li>
+    <li>Deploy</li>
+    <li>Live &amp; logging (2 weeks)</li>
+    <li>Polish, scoped strictly by the failure log</li>
+  </ol>
+</section>
+
+<section class="slide"><div class="num">11 / 16</div>
+  <div class="tag">Voice &amp; text</div>
+  <h2>Comprehension adapts. Voice never does.</h2>
+  <p class="lead">Any register, spelling, or language in — clean, neutral
+  Quebec French or plain English out, one language per reply, never mixed.</p>
+  <div class="quote">« 3 min · 24 vers Côte-Vertu. Prochain dans 11 min. »</div>
+  <div class="quote">"3 min · 24 toward Côte-Vertu. Next in 11 min."</div>
+  <div class="quote">« Je comprends, c'est frustrant. Le 105 est retardé de
+  8 min — voici le prochain départ fiable. »</div>
+</section>
+
+<section class="slide"><div class="num">12 / 16</div>
+  <div class="tag">Commercial addendum — directional, gated on real data</div>
+  <h2>Beyond one user</h2>
+  <p class="lead">Everything below is a sketch, not a plan — it's gated on
+  Stage 0–1 producing real, verified feed data before any of it is worth
+  taking seriously.</p>
+</section>
+
+<section class="slide"><div class="num">13 / 16</div>
+  <div class="tag">Cost</div>
+  <h2>~$5/month at one user</h2>
+  <p class="lead">Single Railway instance, one LLM call pair per query,
+  JSON-file persistence. The architecture is intentionally cheap because it
+  only has to be right for one person — scaling changes almost every
+  assumption here.</p>
+</section>
+
+<section class="slide"><div class="num">14 / 16</div>
+  <div class="tag">Audience</div>
+  <h2>Who else might want this</h2>
+  <ul>
+    <li>Households sharing common commutes (not just one user's stops)</li>
+    <li>Small orgs wanting a Slack/SMS transit assistant for a specific site</li>
+    <li>Other transit-agency cities with public GTFS + GTFS-RT feeds</li>
+  </ul>
+</section>
+
+<section class="slide"><div class="num">15 / 16</div>
+  <div class="tag">Risks &amp; moat</div>
+  <h2>The moat isn't the feed integration</h2>
+  <p class="lead">GTFS parsing is commodity work. The actual differentiator
+  is the voice doctrine — disciplined, correctly-registered bilingual output
+  that never sounds like a translated FAQ — and never inventing a schedule.
+  Both are easy to erode with a careless prompt change.</p>
+</section>
+
+<section class="slide"><div class="num">16 / 16</div>
+  <div class="tag">Path to more users</div>
+  <h2>What would actually have to change</h2>
+  <ul>
+    <li>Multi-tenant profile store (today: one JSON file, one user)</li>
+    <li>Per-user auth instead of a single trusted device</li>
+    <li>Rate limiting and cost controls per tenant on the LLM calls</li>
+    <li>A real onboarding UI beyond "the first two chat messages"</li>
+  </ul>
+  <p class="lead">None of this is started, and none of it should be, before
+  Stage 4's failure log says the single-user product actually works.</p>
+</section>
+
+</body>
+</html>

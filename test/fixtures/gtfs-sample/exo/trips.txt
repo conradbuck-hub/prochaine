@@ -1,0 +1,3 @@
+trip_id,route_id,service_id,trip_headsign
+TEXO4-1,REXO4,DAILY,Mont-Saint-Hilaire
+TEXO4-2,REXO4,DAILY,Mont-Saint-Hilaire

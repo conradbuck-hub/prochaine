@@ -1,0 +1,4 @@
+stop_id,stop_name,stop_lat,stop_lon
+2001,Sherbrooke / Atwater,45.4886,-73.5820
+2002,Atwater,45.4886,-73.5850
+1999,Cote-Vertu,45.5142,-73.6870

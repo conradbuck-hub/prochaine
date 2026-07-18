@@ -1,0 +1,7 @@
+node_modules/
+.env
+data/user-profile.json
+server/data/compiled/*.json
+server/data/gtfs-static/
+*.log
+.DS_Store

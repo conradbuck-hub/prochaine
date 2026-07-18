@@ -1,0 +1,133 @@
+:root {
+  --ink: #14181C;
+  --paper: #F5F3EE;
+  --bubble-user: #E4E1D8;
+  --bubble-bot: #ffffff;
+  --border: rgba(0,0,0,0.12);
+  --line-a: #0C8353;
+  --line-b: #D9631E;
+  --line-c: #D9A404;
+  --line-d: #1F5FA8;
+  --accent: var(--line-b);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --ink: #EDEFF2;
+    --paper: #101316;
+    --bubble-user: #21262b;
+    --bubble-bot: #181c20;
+    --border: rgba(255,255,255,0.14);
+  }
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+header .chevron {
+  width: 0; height: 0;
+  border-top: 8px solid transparent;
+  border-bottom: 8px solid transparent;
+  border-left: 12px solid var(--accent);
+}
+
+header h1 {
+  font-size: 1.1rem;
+  margin: 0;
+  letter-spacing: -0.01em;
+}
+
+#thread {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.bubble {
+  max-width: 80%;
+  padding: 0.6rem 0.85rem;
+  border-radius: 14px;
+  line-height: 1.4;
+  font-variant-numeric: tabular-nums;
+  white-space: pre-wrap;
+}
+
+.bubble.user {
+  align-self: flex-end;
+  background: var(--bubble-user);
+}
+
+.bubble.bot {
+  align-self: flex-start;
+  background: var(--bubble-bot);
+  border: 1px solid var(--border);
+}
+
+.bubble.error {
+  border-color: var(--line-b);
+  color: var(--line-b);
+}
+
+form#composer {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+#message {
+  flex: 1;
+  padding: 0.7rem 0.9rem;
+  border-radius: 20px;
+  border: 1px solid var(--border);
+  background: var(--bubble-bot);
+  color: var(--ink);
+  font-size: 1rem;
+  font-family: inherit;
+}
+
+#message:focus {
+  outline: 2px solid var(--accent);
+  outline-offset: -1px;
+}
+
+button[type="submit"] {
+  padding: 0 1.1rem;
+  border-radius: 20px;
+  border: none;
+  background: var(--accent);
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+button[type="submit"]:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Prochaine — Brand Guide</title>
+<style>
+  :root {
+    --ink: #14181C;
+    --paper: #F5F3EE;
+    --line-a: #0C8353;
+    --line-b: #D9631E;
+    --line-c: #D9A404;
+    --line-d: #1F5FA8;
+    --card: #ffffff;
+    --border: rgba(0,0,0,0.1);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --ink: #EDEFF2;
+      --paper: #101316;
+      --card: #181C20;
+      --border: rgba(255,255,255,0.12);
+    }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    padding: 2.5rem 1.5rem 4rem;
+    background: var(--paper);
+    color: var(--ink);
+    font-family: -apple-system, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.5;
+  }
+  .wrap { max-width: 760px; margin: 0 auto; }
+  h1 {
+    font-size: 2.4rem;
+    margin: 0 0 0.25rem;
+    letter-spacing: -0.02em;
+  }
+  .tagline { opacity: 0.7; margin: 0 0 2.5rem; font-size: 1.05rem; }
+  h2 {
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    opacity: 0.6;
+    margin: 2.5rem 0 1rem;
+    border-bottom: 1px solid var(--border);
+    padding-bottom: 0.5rem;
+  }
+  .swatches { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 1rem; }
+  .swatch {
+    border-radius: 10px;
+    padding: 1rem;
+    color: #fff;
+    font-size: 0.85rem;
+  }
+  .swatch b { display: block; font-size: 0.95rem; margin-bottom: 0.2rem; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 1rem 1.25rem;
+    margin-bottom: 0.75rem;
+  }
+  .bubble {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-variant-numeric: tabular-nums;
+  }
+  .chevron {
+    width: 0; height: 0;
+    border-top: 7px solid transparent;
+    border-bottom: 7px solid transparent;
+    border-left: 10px solid currentColor;
+    flex-shrink: 0;
+  }
+  .a { color: var(--line-a); } .b { color: var(--line-b); }
+  .c { color: var(--line-c); } .d { color: var(--line-d); }
+  .example { font-size: 1.05rem; }
+  .example small { display: block; opacity: 0.55; font-size: 0.8rem; margin-top: 0.15rem; }
+  code {
+    background: var(--border);
+    padding: 0.1rem 0.4rem;
+    border-radius: 4px;
+    font-size: 0.85em;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Prochaine</h1>
+  <p class="tagline">Montreal transit, one chat window. Flip-board energy, no clutter, no invented schedules.</p>
+
+  <h2>Color — mode accents</h2>
+  <div class="swatches">
+    <div class="swatch" style="background:var(--line-a)"><b>Line A</b>métro / REM</div>
+    <div class="swatch" style="background:var(--line-b)"><b>Line B</b>bus</div>
+    <div class="swatch" style="background:var(--line-c)"><b>Line C</b>exo</div>
+    <div class="swatch" style="background:var(--line-d)"><b>Line D</b>BIXI / weather</div>
+  </div>
+
+  <h2>Departure bubbles</h2>
+  <div class="card"><div class="bubble a"><span class="chevron"></span> 3 min · Métro verte vers Angrignon</div></div>
+  <div class="card"><div class="bubble b"><span class="chevron"></span> 3 min · 24 vers Côte-Vertu</div></div>
+  <div class="card"><div class="bubble c"><span class="chevron"></span> 11 min · exo4 vers Mont-Saint-Hilaire</div></div>
+  <div class="card"><div class="bubble d"><span class="chevron"></span> 6 vélos, 2 bornes · BIXI Peel / Ste-Catherine</div></div>
+
+  <h2>Tone examples</h2>
+  <div class="card example">
+    « 3 min · 24 vers Côte-Vertu. Prochain dans 11 min. »
+    <small>FR — neutral, declarative, no filler</small>
+  </div>
+  <div class="card example">
+    "3 min · 24 toward Côte-Vertu. Next in 11 min."
+    <small>EN — same information, same register</small>
+  </div>
+  <div class="card example">
+    « Je comprends, c'est frustrant. Le 105 est retardé de 8 min — voici le
+    prochain départ fiable. »
+    <small>Frustration handling — brief acknowledgment, straight back to useful information</small>
+  </div>
+
+  <h2>Type &amp; numerals</h2>
+  <p>System sans-serif stack (<code>-apple-system, "Segoe UI", Roboto,
+  sans-serif</code>). Numerals rendered tabular so countdowns don't jitter
+  horizontally as digits change.</p>
+
+  <h2>What this is not</h2>
+  <p>Not a reproduction of STM's trademarked logo or roundel. Not a
+  photographic or illustrated brand. One user, one screen, ~$5/month to
+  run — the brand should cost nothing to render and nothing to maintain.</p>
+</div>
+</body>
+</html>

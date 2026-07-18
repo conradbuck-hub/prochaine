@@ -1,0 +1,3 @@
+route_id,route_short_name,route_long_name,route_type
+R24,24,Sherbrooke,3
+RGREEN,1,Ligne verte,1

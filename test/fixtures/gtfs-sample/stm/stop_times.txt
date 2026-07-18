@@ -1,0 +1,4 @@
+trip_id,stop_id,stop_sequence,departure_time
+T24-1,2001,1,08:00:00
+TGREEN-1,2002,1,05:34:00
+TGREEN-2,1999,1,05:34:00

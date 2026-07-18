@@ -1,0 +1,3 @@
+trip_id,stop_id,stop_sequence,departure_time
+TEXO4-1,3001,1,08:15:00
+TEXO4-2,3001,1,08:45:00
