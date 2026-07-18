@@ -1,9 +1,21 @@
 // Typo-tolerant stop resolution: personal aliases/lexicon first, then exact
-// match against the preprocessed stop index, then edit-distance fallback.
-// "sherbrook atwatter" needs to resolve to "Sherbrooke / Atwater" without the
-// user ever typing an exact GTFS stop name.
+// match against the preprocessed stop index, then a TOKEN-LEVEL edit-distance
+// fallback. "sherbrook atwatter" needs to resolve to "Sherbrooke / Atwater"
+// without the user ever typing an exact GTFS stop name — but whole-name
+// comparison is unreliable once real stop names are multi-word cross-streets:
+// against real STM data, "atwatter" whole-string-matched decoy stops like
+// "Elm / Tower" and "Bombardier" more closely than "Sherbrooke / Atwater",
+// purely because of overall length/character overlap, nothing to do with the
+// actual word being typed. Comparing individual words instead fixes that.
 
 const ACCENTS = /[̀-ͯ]/g;
+
+// Query tokens shorter than this are too likely to false-positive-match
+// unrelated words (fr/en articles, etc.) to use for fuzzy comparison.
+const MIN_FUZZY_TOKEN_LENGTH = 4;
+// Never surface a fuzzy match further than this from some token in the
+// query — a hard cap, not a length-scaled threshold.
+const MAX_FUZZY_DISTANCE = 2;
 
 export function normalize(str) {
   return str
@@ -38,6 +50,40 @@ export function levenshtein(a, b) {
   return prevRow[b.length];
 }
 
+function tokenize(normalizedStr) {
+  return normalizedStr.split(" ").filter(Boolean);
+}
+
+// Compares each query token of length >= MIN_FUZZY_TOKEN_LENGTH against
+// every token in a candidate stop name, keeping the best (lowest) distance
+// found per query token. A stop only qualifies if at least one query token
+// has some name-token within MAX_FUZZY_DISTANCE — short query tokens (< 4
+// chars) never participate, and nothing beyond the cap ever counts.
+// Returns { distance, matchedTokens } (distance = best single-token match
+// found across all qualifying query tokens; matchedTokens = how many
+// distinct query tokens cleared the cap) or null if nothing qualifies.
+function scoreTokenMatch(queryTokens, nameTokens) {
+  const candidates = queryTokens.filter((t) => t.length >= MIN_FUZZY_TOKEN_LENGTH);
+  if (candidates.length === 0) return null;
+
+  let distance = Infinity;
+  let matchedTokens = 0;
+
+  for (const qToken of candidates) {
+    let best = Infinity;
+    for (const nToken of nameTokens) {
+      const d = levenshtein(qToken, nToken);
+      if (d < best) best = d;
+    }
+    if (best <= MAX_FUZZY_DISTANCE) {
+      matchedTokens++;
+      if (best < distance) distance = best;
+    }
+  }
+
+  return matchedTokens > 0 ? { distance, matchedTokens } : null;
+}
+
 // stopIndex: array of { id, name, agency, lat, lon }
 // profile: user profile with .aliases and .lexicon maps (term -> stopId or name)
 // Returns { stop, source: "lexicon"|"alias"|"exact"|"fuzzy", distance? } or null.
@@ -70,54 +116,58 @@ export function findStop(query, stopIndex, profile = {}) {
   );
   if (contains) return { stop: contains, source: "exact" };
 
+  const queryTokens = tokenize(normalizedQuery);
   let best = null;
-  let bestDistance = Infinity;
   for (const stop of stopIndex) {
-    const distance = levenshtein(normalizedQuery, normalize(stop.name));
-    if (distance < bestDistance) {
-      bestDistance = distance;
-      best = stop;
+    const score = scoreTokenMatch(queryTokens, tokenize(normalize(stop.name)));
+    if (!score) continue;
+    if (
+      !best ||
+      score.distance < best.score.distance ||
+      (score.distance === best.score.distance && score.matchedTokens > best.score.matchedTokens)
+    ) {
+      best = { stop, score };
     }
   }
 
-  // Distance threshold scales with query length so short queries don't
-  // fuzzy-match to something unrelated.
-  const threshold = Math.max(2, Math.floor(normalizedQuery.length * 0.4));
-  if (best && bestDistance <= threshold) {
-    return { stop: best, source: "fuzzy", distance: bestDistance };
+  if (best) {
+    return { stop: best.stop, source: "fuzzy", distance: best.score.distance };
   }
 
   return null;
 }
 
 // Ranks every stop against a query using the same normalize/exact/contains/
-// edit-distance signals findStop uses, instead of returning just the single
-// winner — useful for debugging a resolution (e.g. GET /debug/stops?q=...):
-// seeing the top few candidates and their distance makes it obvious why a
-// query resolved (or didn't) the way it did. Sorted best-first; ties keep
-// stopIndex order (stable sort).
+// token-level-edit-distance signals findStop uses, instead of returning
+// just the single winner — useful for debugging a resolution (e.g.
+// GET /debug/stops?q=...): seeing the top few candidates, their distance,
+// and how many query tokens matched makes it obvious why a query resolved
+// (or didn't) the way it did. Sorted by distance, then by matched-token
+// count; ties beyond that keep stopIndex order (stable sort).
 export function rankStops(query, stopIndex, limit = 10) {
   const normalizedQuery = normalize(query);
   if (!normalizedQuery) return [];
+  const queryTokens = tokenize(normalizedQuery);
 
-  return stopIndex
-    .map((stop) => {
-      const normalizedName = normalize(stop.name);
-      let source;
-      let distance;
-      if (normalizedName === normalizedQuery) {
-        source = "exact";
-        distance = 0;
-      } else if (normalizedName.includes(normalizedQuery)) {
-        source = "contains";
-        distance = 0;
-      } else {
-        source = "fuzzy";
-        distance = levenshtein(normalizedQuery, normalizedName);
-      }
-      return { stop, source, distance };
-    })
-    .sort((a, b) => a.distance - b.distance)
+  const results = [];
+  for (const stop of stopIndex) {
+    const normalizedName = normalize(stop.name);
+    if (normalizedName === normalizedQuery) {
+      results.push({ stop, source: "exact", distance: 0, matchedTokens: queryTokens.length });
+      continue;
+    }
+    if (normalizedName.includes(normalizedQuery)) {
+      results.push({ stop, source: "contains", distance: 0, matchedTokens: queryTokens.length });
+      continue;
+    }
+    const score = scoreTokenMatch(queryTokens, tokenize(normalizedName));
+    if (score) {
+      results.push({ stop, source: "fuzzy", distance: score.distance, matchedTokens: score.matchedTokens });
+    }
+  }
+
+  return results
+    .sort((a, b) => a.distance - b.distance || b.matchedTokens - a.matchedTokens)
     .slice(0, limit);
 }
 

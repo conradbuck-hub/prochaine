@@ -33,7 +33,12 @@ export function createDebugRouter({ config, cache, stopIndex, scheduleIndex }) {
       return res.json({
         query: q,
         count: ranked.length,
-        matches: ranked.map(({ stop, source, distance }) => ({ ...stop, source, distance })),
+        matches: ranked.map(({ stop, source, distance, matchedTokens }) => ({
+          ...stop,
+          source,
+          distance,
+          matchedTokens,
+        })),
       });
     }
     res.json({ count: stopIndex.length, stops: stopIndex.slice(0, 50) });
